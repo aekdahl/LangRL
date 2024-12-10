@@ -68,3 +68,7 @@ LangRL is open source, and we welcome contributions! To get started:
 
 ## License
 LangRL is released under the MIT License. See LICENSE for details.
+
+## Stay Connected
+- **Issues**: Report bugs or request features in the issue tracker.
+- **Discussions**: Join the conversation in the discussions tab.
