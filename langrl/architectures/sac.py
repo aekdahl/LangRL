@@ -61,11 +61,14 @@ class Actor(nn.Module):
         # for Tanh squashing if you do that. Here, let's assume we do NOT
         # clamp or tanh the action. If you want to clamp your embedding, adapt accordingly.
 
+        # L2 normalization
+        z_norm = z / (z.norm(dim=-1, keepdim=True) + 1e-8)
+
         # log_prob of a Gaussian
         log_prob = (-0.5 * ((z - mu) / (std + 1e-8)).pow(2)
                     - log_std
                     - np.log(np.sqrt(2 * np.pi))).sum(dim=1, keepdim=True)
-        return z, log_prob
+        return z_norm, log_prob
 
 class Critic(nn.Module):
     """
