@@ -219,3 +219,76 @@ class SACAgent:
         """
         for param, target_param in zip(net.parameters(), net_target.parameters()):
             target_param.data.copy_(self.tau * param.data + (1 - self.tau) * target_param.data)
+
+    def save(self, filename):
+        """
+        Saves the model parameters (actor/critics/optimizers) 
+        and optionally the replay buffer, to a .pth or similar file.
+        """
+        checkpoint = {
+            "actor_state_dict": self.actor.state_dict(),
+            "critic1_state_dict": self.critic1.state_dict(),
+            "critic2_state_dict": self.critic2.state_dict(),
+            "critic1_target_state_dict": self.critic1_target.state_dict(),
+            "critic2_target_state_dict": self.critic2_target.state_dict(),
+            "actor_optimizer_state_dict": self.actor_optim.state_dict(),
+            "critic1_optimizer_state_dict": self.critic1_optim.state_dict(),
+            "critic2_optimizer_state_dict": self.critic2_optim.state_dict(),
+            # If you want to store other metadata (e.g., total steps, episode count), add them here:
+            # "total_steps": self.total_steps,
+            # ...
+        }
+
+        # Save to disk
+        torch.save(checkpoint, filename)
+        print(f"SAC checkpoint saved to {filename}")
+
+    def load(self, filename, load_replay_buffer=False):
+        """
+        Loads the model parameters from a checkpoint. 
+        If load_replay_buffer=True, also load the replay buffer from a separate file or dict.
+        """
+        if not os.path.exists(filename):
+            print(f"No checkpoint found at {filename}")
+            return
+
+        checkpoint = torch.load(filename, map_location=self.device)
+
+        self.actor.load_state_dict(checkpoint["actor_state_dict"])
+        self.critic1.load_state_dict(checkpoint["critic1_state_dict"])
+        self.critic2.load_state_dict(checkpoint["critic2_state_dict"])
+        self.critic1_target.load_state_dict(checkpoint["critic1_target_state_dict"])
+        self.critic2_target.load_state_dict(checkpoint["critic2_target_state_dict"])
+
+        self.actor_optim.load_state_dict(checkpoint["actor_optimizer_state_dict"])
+        self.critic1_optim.load_state_dict(checkpoint["critic1_optimizer_state_dict"])
+        self.critic2_optim.load_state_dict(checkpoint["critic2_optimizer_state_dict"])
+
+        print(f"SAC checkpoint loaded from {filename}")
+
+        if load_replay_buffer:
+            # Optional: load replay buffer from a separate file 
+            # (or from the same checkpoint if you store it there)
+            buffer_filename = filename.replace(".pth", "_replay.pkl")
+            if os.path.exists(buffer_filename):
+                with open(buffer_filename, "rb") as f:
+                    data = pickle.load(f)
+                # Rebuild the deque with existing maxlen
+                self.replay_buffer = deque(data, maxlen=self.replay_buffer.maxlen)
+                print(f"Replay buffer loaded from {buffer_filename}")
+            else:
+                print(f"No replay buffer file found at {buffer_filename}")
+
+        def save_replay_buffer(self, filename):
+        # Convert the deque to a list and pickle it
+        with open(filename, "wb") as f:
+            pickle.dump(list(self.replay_buffer), f)
+
+    def load_replay_buffer(self, filename):
+        if os.path.exists(filename):
+            with open(filename, "rb") as f:
+                data = pickle.load(f)
+            self.replay_buffer = deque(data, maxlen=self.replay_buffer.maxlen)
+            print(f"Replay buffer loaded from {filename}")
+        else:
+            print(f"No replay buffer file found at {filename}")
