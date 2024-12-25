@@ -4,7 +4,7 @@ from ..architectures.sac import SACAgent
 from ..environments.embeddings import EmbeddingEnv
 
 class Embedding:
-  def train_sac_embedding(self, checkpoint_path = "../models/sac_embedding_checkpoint.pth"):
+  def train(self, checkpoint_path = "../models/sac_embedding_checkpoint.pth"):
     # Hyperparams
     obs_dim = 4
     act_dim = 3
